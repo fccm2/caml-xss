@@ -1,0 +1,24 @@
+This package tries to provide a possible way to create screen-savers for
+xscreensaver, with the ocaml programming language.
+
+This package is known to work with (*at least*) xscreensaver version 6.09.
+
+You need xscreensaver sources to compile the stubs of this package.
+
+You need to copy the files from this repository, inside the sources of
+your local xscreensaver sources, then follow instructions from the file:
+"hacks/caml_xss.readme".
+
+If you already installed a version of xscreensaver, you don't need to uninstall
+it to add additional (ocaml-)savers, you can just copy the new ones, and put
+it next to the other ones, in the system, or anywhere else.
+
+The savers from xscreensaver can also be used as demo(s), and/or even as
+games, because there is a callback for input-events from the user.
+
+So you can make a saver that just runs alone as a usual saver, without
+user-input, and which creates interactions if user-input suddenly arrive.
+
+Now you can copy-paste the commands to compile the examples from the file:
+"hacks/caml_xss.readme".
+

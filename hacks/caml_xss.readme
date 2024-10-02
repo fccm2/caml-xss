@@ -1,0 +1,34 @@
+All obj .o files from xscreensaver need to be (re)compiled with -fPIC
+
+It can be achieved (re)creating the Makefile in xscreensaver sources,
+with the command:
+
+CFLAGS='-fPIC' sh configure
+
+This can also be made with the makefile called "utils.mk", like this:
+
+# eventually remove the previous obj .o files which were not compiled
+# with '-fPIC':
+make -f utils.mk cleanu
+make -f utils.mk clean
+
+# (re)compile the obj .o files with '-fPIC':
+make -f utils.mk utils
+make -f utils.mk objs
+
+---
+
+Then you can compile the examples with the command:
+make -f make.mk cmxa
+make -f make.mk user.opt
+make -f make.mk user2.opt
+
+and the command:
+make -f make.mk run
+
+should start the example two like this:
+./user2.opt -geometry 280x180
+
+example one can also be started with a similar command:
+./user.opt -geometry 240x160
+
