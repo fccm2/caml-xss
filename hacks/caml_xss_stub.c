@@ -424,8 +424,6 @@ caml_xss_init (Display *display, Window window)
   st->window = window;
   st->gc = None;
   st->delay = 100000;
-  st->w = 0;
-  st->h = 0;
 
   int num_screens = XScreenCount(display);
   st->num_screens = num_screens;
@@ -437,6 +435,13 @@ caml_xss_init (Display *display, Window window)
   unsigned long fg = XWhitePixel(display, default_screen);
 
   XSetForeground(display, st->gc, fg);
+
+  {
+    XWindowAttributes xwa;
+    XGetWindowAttributes(display, window, &xwa);
+    st->w = xwa.width;
+    st->h = xwa.height;
+  }
 
   char *caml_argv[] = { "caml_xss", NULL };
   caml_main(caml_argv);
