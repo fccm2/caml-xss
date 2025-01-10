@@ -20,7 +20,7 @@ make -f utils.mk objs
 
 Then you can compile the examples with the command:
 make -f make.mk cmxa
-make -f make.mk user.opt
+make -f make.mk user1.opt
 make -f make.mk user2.opt
 
 and the command:
@@ -30,5 +30,5 @@ should start the example two like this:
 ./user2.opt -geometry 280x180
 
 example one can also be started with a similar command:
-./user.opt -geometry 240x160
+./user1.opt -geometry 240x160
 
