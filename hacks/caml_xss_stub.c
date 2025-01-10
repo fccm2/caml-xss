@@ -134,26 +134,6 @@ caml_xdefaultcolormap(value x_elems)
   return caml_copy_nativeint(colormap);
 }
 
-#if 0
-Status XAllocColor(display, colormap, screen_in_out)
-      Display *display;
-      Colormap colormap;
-      XColor *screen_in_out;
-
-typedef struct {
-	unsigned long pixel;			/* pixel value */
-	unsigned short red, green, blue;	/* rgb values */
-	char flags;				/* DoRed, DoGreen, DoBlue */
-	char pad;
-} XColor;
-
-XFreeColors(display, colormap, pixels, npixels, planes)
-      Display *display;
-      Colormap colormap;
-      unsigned long pixels[];
-      int npixels;
-      unsigned long planes;
-#endif
 
 CAMLprim value
 caml_xalloccolor(value x_elems, value caml_colormap, value c);
@@ -266,7 +246,7 @@ void reshape_closure(struct state *st, unsigned int w, unsigned int h)
   if (closure_f == NULL) {
     closure_f = caml_named_value("reshape-callback");
   }
-  caml_callback2(*closure_f, Val_int(w), Val_int(h));
+  caml_callback3(*closure_f, Val_x_elems(st), Val_int(w), Val_int(h));
 }
 
 void free_closure(struct state *st)
@@ -275,7 +255,7 @@ void free_closure(struct state *st)
   if (closure_f == NULL) {
     closure_f = caml_named_value("free-callback");
   }
-  caml_callback(*closure_f, Val_unit);
+  caml_callback(*closure_f, Val_x_elems(st));
 }
 
 /* X-lib bindings */

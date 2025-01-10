@@ -1,28 +1,53 @@
 open Caml_xss
 
-let dims = ref (0, 0)
+let dims = ref (100, 60)
 
 let rand_color () =
   (Random.int 65536,
    Random.int 65536,
    Random.int 65536)
 
-let () =
-  let color = ref (rand_color ()) in
-  let change_color () =
-    match Random.int 20 with
-    | 0 -> color := rand_color ()
-    | 1 -> color := (0, 0, 0)
-    | _ -> ()
-  in
+let color = ref (rand_color ())
 
-  let user_calls = {
-    user_init = (fun xelms -> ());
-    user_draw = (fun xelms ->
-      change_color ();
+let change_color () =
+  match Random.int 20 with
+  | 0 -> color := rand_color (); true
+  | 1 -> color := (0, 0, 0); true
+  | _ -> (); false
+
+module UserSaver = struct
+  type state = {
+    colormap: Caml_xss.colormap;
+    mutable color: pixel;
+  }
+  type user_calls = {
+    saver_init: x_elems -> state;
+    saver_draw: x_elems -> state -> int;
+    saver_reshape: x_elems -> state -> int -> int -> unit;
+    saver_free: x_elems -> state -> unit;
+  }
+  let user_saver = {
+    saver_init = (fun xelms ->
       let colormap = X.default_colormap xelms in
-      let px = X.alloc_color xelms colormap !color in
-      X.set_foreground xelms px;
+      let color = X.alloc_color xelms colormap !color in
+      X.set_foreground xelms color;
+      { colormap;
+        color;
+      }
+    );
+    saver_reshape = (fun xelms state w h ->
+      dims := (w, h);
+    );
+    saver_free = (fun xelms state ->
+      X.free_colors xelms state.colormap state.color;
+    );
+    saver_draw = (fun xelms state ->
+      if change_color ()
+      then begin
+        X.free_colors xelms state.colormap state.color;
+        state.color <- X.alloc_color xelms state.colormap !color;
+        X.set_foreground xelms state.color;
+      end;
       let w, h = !dims in
       for i = 0 to pred 24 do
         let x = Random.int w in
@@ -35,14 +60,10 @@ let () =
         let y = Random.int h in
         X.draw_line xelms (x1, y, x2, y);
       done;
-      X.free_colors xelms colormap px;
       (200000)
     );
-    user_reshape = (fun w h ->
-      dims := (w, h);
-    );
-  } in
+  }
+end
 
-  Caml_xss.ref_user_calls user_calls;
-;;
+module SomeSaver = MakeSaver(UserSaver)
 

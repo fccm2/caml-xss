@@ -1,3 +1,4 @@
+(* Xlib types *)
 type display
 type window
 type gc
@@ -12,7 +13,7 @@ type x_elems = {
   h: int;
 }
 
-(* bindings elements *)
+(* bindings elements to the Xlib *)
 module X = struct
   external draw_point : x_elems -> int * int -> unit = "caml_xdrawpoint"
   external draw_rectangle : x_elems -> int * int * int * int -> unit = "caml_xdrawrectangle"
@@ -27,54 +28,49 @@ module X = struct
   external free_colors : x_elems -> colormap -> pixel -> unit = "caml_xfreecolors"
 end
 
+module type USER = sig
+  type state
+  type user_calls = {
+    saver_init: x_elems -> state;
+    saver_draw: x_elems -> state -> int;
+    saver_reshape: x_elems -> state -> int -> int -> unit;
+    saver_free: x_elems -> state -> unit;
+  }
+  val user_saver : user_calls
+end
 
-type user_calls = {
-  user_draw: x_elems -> int;
-  user_init: x_elems -> unit;
-  user_reshape: int -> int -> unit;
-}
+module MakeSaver (User : USER) = struct
+  let _state = ref (None : User.state option)
 
-let empty_calls = {
-  user_draw = (fun x_elems -> (100000));
-  user_init = (fun x_elems -> ());
-  user_reshape = (fun x y -> ());
-}
+  let init_callback x_elems =
+    _state := Some (User.user_saver.saver_init x_elems);
+  ;;
 
-let default_calls = empty_calls
-let usr_calls = ref empty_calls
+  let draw_callback x_elems =
+    match !_state with None -> 1000000
+    | Some _state -> User.user_saver.saver_draw x_elems _state;
+  ;;
 
-let ref_user_calls _usr_calls =
-  usr_calls := _usr_calls;
-  ()
-;;
+  let free_callback x_elems =
+    match !_state with None -> ()
+    | Some _state -> User.user_saver.saver_free x_elems _state;
+  ;;
 
-let init_callback (x_elems) =
-  print_endline "init_callback()";
-  !usr_calls.user_init x_elems;
-;;
+  let event_callback () =
+    Printf.printf "e%!";
+  ;;
 
-let draw_callback (x_elems) =
-  Printf.printf ".%!";
-  !usr_calls.user_draw x_elems;
-;;
+  let reshape_callback x_elems w h =
+    match !_state with None -> ()
+    | Some _state -> User.user_saver.saver_reshape x_elems _state w h;
+  ;;
 
-let free_callback () =
-  Printf.printf "free\n%!";
-;;
+  let () =
+    Callback.register "init-callback" init_callback;
+    Callback.register "draw-callback" draw_callback;
+    Callback.register "free-callback" free_callback;
+    Callback.register "event-callback" event_callback;
+    Callback.register "reshape-callback" reshape_callback;
+  ;;
+end
 
-let event_callback () =
-  Printf.printf "e%!";
-;;
-
-let reshape_callback (w : int) (h : int) =
-  Printf.printf "reshape: %d %d\n%!" w h;
-  !usr_calls.user_reshape w h;
-;;
-
-let () =
-  Callback.register "init-callback" init_callback;
-  Callback.register "draw-callback" draw_callback;
-  Callback.register "free-callback" free_callback;
-  Callback.register "event-callback" event_callback;
-  Callback.register "reshape-callback" reshape_callback;
-;;

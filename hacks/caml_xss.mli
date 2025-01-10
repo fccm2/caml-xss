@@ -1,3 +1,7 @@
+(** Interface to create savers for Xscreensaver in ocaml *)
+
+(** Xlib types *)
+
 type display
 type window
 type gc
@@ -13,7 +17,8 @@ type x_elems = {
 }
 
 module X : sig
-  (* bindings elements *)
+  (** bindings elements to the Xlib *)
+
   val draw_point : x_elems -> int * int -> unit
   val draw_line : x_elems -> int * int * int * int -> unit
   val draw_rectangle : x_elems -> int * int * int * int -> unit
@@ -27,13 +32,22 @@ module X : sig
   val free_colors : x_elems -> colormap -> pixel -> unit
 end
 
-type user_calls = {
-  user_draw : x_elems -> int;
-  user_init : x_elems -> unit;
-  user_reshape : int -> int -> unit;
-}
+module type USER = sig
+  type state
+  type user_calls = {
+    saver_init : x_elems -> state;
+    saver_draw : x_elems -> state -> int;
+    saver_reshape : x_elems -> state -> int -> int -> unit;
+    saver_free: x_elems -> state -> unit;
+  }
+  val user_saver : user_calls
+end
 
-val ref_user_calls : user_calls -> unit
+module MakeSaver : functor (User : USER) -> sig
+end
 
-val default_calls : user_calls
+(** create a module with your saver with the type [USER],
+    then use the functor like this:
+    [module SomeSaver = MakeSaver(UserSaver)]
+*)
 
