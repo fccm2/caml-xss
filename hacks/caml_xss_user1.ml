@@ -23,5 +23,6 @@ module UserSaver = struct
   }
 end
 
-module SomeSaver = MakeSaver(UserSaver)
+module SomeSaver = MakeSaver(UserSaver) ;;
+SomeSaver.install() ;;
 

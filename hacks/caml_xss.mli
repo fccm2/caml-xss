@@ -44,6 +44,7 @@ module type USER = sig
 end
 
 module MakeSaver : functor (User : USER) -> sig
+  val install : unit -> unit
 end
 
 (** create a module with your saver with the type [USER],
