@@ -98,5 +98,9 @@ end
 module SomeSaver = MakeSaver(UserSaver)
 end ;;
 
-User1.SomeSaver.install() ;;
+if false then
+  User1.SomeSaver.install()
+else
+  User2.SomeSaver.install()
+;;
 
