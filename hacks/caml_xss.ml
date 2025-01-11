@@ -65,7 +65,7 @@ module MakeSaver (User : USER) = struct
     | Some _state -> User.user_saver.saver_reshape x_elems _state w h;
   ;;
 
-  let () =
+  let install () =
     Callback.register "init-callback" init_callback;
     Callback.register "draw-callback" draw_callback;
     Callback.register "free-callback" free_callback;
